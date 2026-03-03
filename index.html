@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>欣泛亞 膠片計算</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --white: #ffffff;
+      --blue: #3b82f6;
+      --blue-light: #eff6ff;
+      --blue-mid: #bfdbfe;
+      --text: #1e293b;
+      --muted: #94a3b8;
+      --border: #e2e8f0;
+      --red: #f87171;
+      --red-light: #fef2f2;
+      --green: #34d399;
+      --green-light: #ecfdf5;
+      --r: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ─── Header ─── */
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px;
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-dot {
+      width: 10px; height: 10px;
+      background: var(--blue);
+      border-radius: 50%;
+    }
+    .logo h1 { font-size: 15px; font-weight: 600; }
+    .logo span { font-size: 11px; color: var(--muted); display: block; }
+    header .add-btn {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px; font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    /* ─── Main ─── */
+    main { max-width: 560px; margin: 0 auto; padding: 16px 14px 60px; }
+
+    /* ─── Section title ─── */
+    .sec-title {
+      font-size: 11px; font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin: 20px 0 8px 2px;
+    }
+
+    /* ─── Record card ─── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      margin-bottom: 10px;
+      overflow: hidden;
+      animation: pop .18s ease;
+    }
+    @keyframes pop { from { opacity:0; transform:scale(.98); } to { opacity:1; transform:scale(1); } }
+
+    .card-top {
+      padding: 10px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-num {
+      font-size: 12px; font-weight: 600; color: var(--blue);
+      background: var(--blue-light);
+      border-radius: 6px;
+      padding: 3px 9px;
+    }
+    .del-btn {
+      background: none; border: none;
+      font-size: 18px; color: var(--muted);
+      cursor: pointer; line-height: 1;
+      padding: 2px 4px;
+    }
+    .del-btn:hover { color: var(--red); }
+
+    .card-inputs {
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field.wide { grid-column: span 2; }
+    .field label {
+      font-size: 11px; font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .03em;
+    }
+    .field .wrap { position: relative; }
+    .field input, .field select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 36px 9px 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      -webkit-appearance: none;
+      transition: border-color .15s;
+    }
+    .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394a3b8'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position: right 10px center; }
+    .field input:focus, .field select:focus {
+      outline: none; border-color: var(--blue);
+      background: var(--white);
+    }
+    .field .unit {
+      position: absolute; right: 10px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px; color: var(--muted);
+      pointer-events: none;
+    }
+
+    /* results */
+    .card-results {
+      margin: 0 14px 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .result {
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .result.weight { background: #f8fafc; border: 1px solid var(--border); }
+    .result.length { background: var(--green-light); border: 1px solid #a7f3d0; }
+    .result .r-label { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+    .result .r-val  { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -.02em; }
+    .result.length .r-val { color: #059669; }
+    .result .r-unit { font-size: 11px; color: var(--muted); }
+
+    /* ─── Formula strip ─── */
+    .formula-strip {
+      background: var(--blue-light);
+      border: 1px solid var(--blue-mid);
+      border-radius: var(--r);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .formula-strip summary {
+      font-size: 12px; font-weight: 600; color: var(--blue);
+      cursor: pointer; list-style: none;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .formula-strip summary::before { content: '▸'; transition: transform .2s; }
+    details[open] .formula-strip summary::before { transform: rotate(90deg); }
+    .formula-body { margin-top: 10px; font-size: 11.5px; color: #475569; line-height: 1.8; }
+    .eq {
+      font-family: monospace;
+      background: #fff;
+      border-left: 3px solid var(--blue);
+      padding: 6px 10px; margin: 4px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 11px;
+    }
+
+    /* ─── Material chips ─── */
+    .mat-panel {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+    .mat-panel-head {
+      padding: 10px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .mat-panel-head span { font-size: 13px; font-weight: 600; }
+    .mat-panel-head button {
+      background: none; border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 10px;
+      font-size: 12px; font-family: inherit;
+      cursor: pointer; color: var(--text);
+    }
+    .chips { padding: 12px 14px; display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 5px 10px;
+      font-size: 12px; color: var(--text);
+    }
+    .chip-del { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 13px; line-height: 1; }
+    .chip-del:hover { color: var(--red); }
+
+    /* ─── Actions bar ─── */
+    .actions {
+      display: flex; gap: 7px; flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .act-btn {
+      flex: 1; min-width: 100px;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 8px; padding: 9px 12px;
+      font-size: 12px; font-weight: 500; font-family: inherit;
+      cursor: pointer; color: var(--text);
+      text-align: center;
+    }
+    .act-btn:active { background: var(--bg); }
+    .act-btn.red { color: var(--red); border-color: #fecaca; background: var(--red-light); }
+
+    /* ─── Empty ─── */
+    .empty {
+      text-align: center; padding: 52px 20px;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 36px; margin-bottom: 10px; }
+    .empty p { font-size: 13px; }
+
+    /* ─── Overlay / Sheet ─── */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,23,42,.35);
+      z-index: 200; align-items: flex-end; justify-content: center;
+    }
+    .overlay.on { display: flex; }
+    .sheet {
+      background: var(--white);
+      border-radius: 18px 18px 0 0;
+      width: 100%; max-width: 560px;
+      padding-bottom: env(safe-area-inset-bottom, 16px);
+      animation: rise .22s ease;
+      max-height: 88vh; overflow-y: auto;
+    }
+    @keyframes rise { from { transform: translateY(30px); opacity: .6; } to { transform: translateY(0); opacity: 1; } }
+    .sheet-bar {
+      width: 32px; height: 4px;
+      background: var(--border); border-radius: 2px;
+      margin: 10px auto 0;
+    }
+    .sheet-title {
+      font-size: 15px; font-weight: 600;
+      padding: 14px 18px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sheet-body { padding: 18px; }
+    .s-field { margin-bottom: 14px; }
+    .s-field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+    .s-field input, .s-field select, .s-field textarea {
+      width: 100%;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 12px;
+      font-size: 14px; font-family: inherit; color: var(--text);
+      -webkit-appearance: none;
+    }
+    .s-field textarea { resize: vertical; font-size: 12px; font-family: monospace; }
+    .s-field input:focus, .s-field select:focus, .s-field textarea:focus {
+      outline: none; border-color: var(--blue); background: var(--white);
+    }
+    .sheet-foot {
+      padding: 0 18px 18px;
+      display: flex; gap: 8px;
+    }
+    .sheet-foot button {
+      flex: 1; padding: 12px;
+      border-radius: 8px; font-size: 14px; font-weight: 600; font-family: inherit;
+      cursor: pointer; border: none;
+    }
+    .sheet-foot .cancel { background: var(--bg); color: var(--muted); }
+    .sheet-foot .confirm { background: var(--blue); color: #fff; }
+
+    /* ─── Toast ─── */
+    .toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: #fff;
+      font-size: 13px; padding: 9px 18px;
+      border-radius: 20px; pointer-events: none;
+      opacity: 0; transition: opacity .2s; z-index: 999;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+
+    @media print {
+      header .add-btn, .actions, .del-btn, .mat-panel-head button { display: none !important; }
+      .card { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <div>
+      <h1>欣泛亞 膠片計算</h1>
+      <span>Film Remaining Calculator</span>
+    </div>
+  </div>
+  <button class="add-btn" id="openAddBtn">＋ 新增</button>
+</header>
+
+<main>
+
+  <!-- Formula -->
+  <details>
+    <div class="formula-strip">
+      <summary>計算公式</summary>
+      <div class="formula-body">
+        r＝半徑厚度、w＝寬度、t＝膠片厚度、ρ＝密度；芯管外徑 168 mm
+        <div class="eq">重量(kg) = [π×((2r+168)²/4 − 168²/4)] × w × ρ ÷ 1,000,000</div>
+        <div class="eq">長度(m)  = 重量(kg) ÷ (w × t × ρ ÷ 1,000)</div>
+      </div>
+    </div>
+  </details>
+
+  <!-- Records -->
+  <div class="sec-title">計算記錄</div>
+  <div id="list"></div>
+
+  <!-- Materials -->
+  <div class="sec-title">材質管理</div>
+  <div class="mat-panel">
+    <div class="mat-panel-head">
+      <span>已設定材質</span>
+      <button id="openMatBtn">＋ 新增材質</button>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="actions">
+    <button class="act-btn" id="exportBtn">↑ 匯出 JSON</button>
+    <button class="act-btn" id="openImportBtn">↓ 匯入 JSON</button>
+    <button class="act-btn" onclick="window.print()">🖨 列印</button>
+    <button class="act-btn red" id="clearBtn">清除全部</button>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- Add Record Sheet -->
+<div class="overlay" id="addOverlay">
+  <div class="sheet">
+    <div class="sheet-bar"></div>
+    <div class="sheet-title">新增計算記錄</div>
+    <div class="sheet-body">
+      <div class="s-field"><label>剩餘半徑厚度 r (mm)</label><input id="f_r" type="number" step="0.01" min="0" placeholder="輸入數值"></div>
+      <div class="s-field"><label>膠片寬度 w (mm)</label><input id="f_w" type="number" step="0.01" min="0" placeholder="輸入數值"></div>
+      <div class="s-field"><label>膠片厚度 t (mm)</label><input id="f_t" type="number" step="0.001" min="0" placeholder="輸入數值"></div>
+      <div class="s-field"><label>材質</label><select id="f_mat"></select></div>
+    </div>
+    <div class="sheet-foot">
+      <button class="cancel" id="addCancel">取消</button>
+      <button class="confirm" id="addConfirm">確認新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Material Sheet -->
+<div class="overlay" id="matOverlay">
+  <div class="sheet">
+    <div class="sheet-bar"></div>
+    <div class="sheet-title">新增材質</div>
+    <div class="sheet-body">
+      <div class="s-field"><label>材質名稱</label><input id="m_name" type="text" placeholder="例：PET、PP"></div>
+      <div class="s-field"><label>密度 (g/cm³)</label><input id="m_den" type="number" step="0.001" min="0" placeholder="例：1.34"></div>
+    </div>
+    <div class="sheet-foot">
+      <button class="cancel" id="matCancel">取消</button>
+      <button class="confirm" id="matConfirm">確認新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Sheet -->
+<div class="overlay" id="importOverlay">
+  <div class="sheet">
+    <div class="sheet-bar"></div>
+    <div class="sheet-title">匯入 JSON</div>
+    <div class="sheet-body">
+      <div class="s-field"><label>上傳 JSON 檔案</label><input type="file" id="importFile" accept=".json"></div>
+      <div class="s-field"><label>或貼上 JSON 內容</label><textarea id="importText" rows="7" placeholder='{"materials":[...],"rows":[]}'></textarea></div>
+    </div>
+    <div class="sheet-foot">
+      <button class="cancel" id="importCancel">取消</button>
+      <button class="confirm" id="importConfirm">確認匯入</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let mats = [{ name:'PET', density:1.34 }, { name:'PP', density:0.91 }];
+  let rows = [];
+
+  const $ = id => document.getElementById(id);
+  const list = $('list'), chips = $('chips');
+
+  /* ─ toast ─ */
+  function toast(msg, ms=2000) {
+    const t=$('toast'); t.textContent=msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), ms);
+  }
+
+  /* ─ calc ─ */
+  function calc(r,w,t,d) {
+    if (!r||!w||!t||!d) return {wt:0,ln:0};
+    const wt = (Math.PI*(Math.pow(r*2+168,2)/4) - Math.PI*(168*168/4)) * w * d / 1e6;
+    const ln = wt / (w*t*d/1000);
+    return {wt,ln};
+  }
+
+  /* ─ sheets ─ */
+  function open(id){ $(id).classList.add('on'); document.body.style.overflow='hidden'; }
+  function close(id){ $(id).classList.remove('on'); document.body.style.overflow=''; }
+  ['addOverlay','matOverlay','importOverlay'].forEach(id=>{
+    $(id).addEventListener('click',e=>{ if(e.target===$(id)) close(id); });
+  });
+
+  /* ─ render chips ─ */
+  function renderChips() {
+    chips.innerHTML='';
+    if(!mats.length){ chips.innerHTML='<span style="font-size:12px;color:var(--muted)">尚無材質</span>'; return; }
+    mats.forEach((m,i)=>{
+      const c=document.createElement('div'); c.className='chip';
+      c.innerHTML=`<span>${m.name} <b style="color:var(--muted)">${m.density}</b> g/cm³</span>
+        <button class="chip-del" data-i="${i}">✕</button>`;
+      chips.appendChild(c);
+    });
+    chips.querySelectorAll('.chip-del').forEach(b=>{
+      b.onclick=()=>{
+        const i=+b.dataset.i;
+        if(rows.some(r=>r.mi===i)){ toast('此材質使用中，無法刪除'); return; }
+        mats.splice(i,1); rows.forEach(r=>{ if(r.mi>i) r.mi--; });
+        renderChips(); renderRows();
+      };
+    });
+    // sync add-sheet select
+    const sel=$('f_mat'), v=sel.value;
+    sel.innerHTML=mats.map((m,i)=>`<option value="${i}">${m.name} (${m.density} g/cm³)</option>`).join('');
+    sel.value=v;
+  }
+
+  /* ─ render rows ─ */
+  function renderRows() {
+    list.innerHTML='';
+    if(!rows.length){
+      list.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>尚無記錄，點擊右上角「＋ 新增」開始</p></div>';
+      return;
+    }
+    rows.forEach((row,idx)=>{
+      const m=mats[row.mi]||mats[0];
+      const {wt,ln}=calc(row.r,row.w,row.t,m.density);
+      const card=document.createElement('div'); card.className='card';
+      card.innerHTML=`
+        <div class="card-top">
+          <span class="card-num"># ${String(idx+1).padStart(2,'0')}</span>
+          <button class="del-btn" data-i="${idx}" title="刪除">✕</button>
+        </div>
+        <div class="card-inputs">
+          <div class="field">
+            <label>半徑厚度 r</label>
+            <div class="wrap"><input type="number" step="0.01" min="0" value="${row.r||''}" placeholder="0" data-f="r" data-i="${idx}"><span class="unit">mm</span></div>
+          </div>
+          <div class="field">
+            <label>膠片寬度 w</label>
+            <div class="wrap"><input type="number" step="0.01" min="0" value="${row.w||''}" placeholder="0" data-f="w" data-i="${idx}"><span class="unit">mm</span></div>
+          </div>
+          <div class="field">
+            <label>膠片厚度 t</label>
+            <div class="wrap"><input type="number" step="0.001" min="0" value="${row.t||''}" placeholder="0" data-f="t" data-i="${idx}"><span class="unit">mm</span></div>
+          </div>
+          <div class="field">
+            <label>材質</label>
+            <div class="wrap">
+              <select data-f="mi" data-i="${idx}">
+                ${mats.map((mm,ii)=>`<option value="${ii}" ${ii===row.mi?'selected':''}>${mm.name} (${mm.density})</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="field wide">
+            <label>密度</label>
+            <div class="wrap"><input readonly value="${m.density}" class="den-disp"><span class="unit">g/cm³</span></div>
+          </div>
+        </div>
+        <div class="card-results">
+          <div class="result weight">
+            <span class="r-label">重量</span>
+            <span class="r-val wt-val">${wt.toFixed(2)}</span>
+            <span class="r-unit">kg</span>
+          </div>
+          <div class="result length">
+            <span class="r-label">長度</span>
+            <span class="r-val ln-val">${ln.toFixed(2)}</span>
+            <span class="r-unit">m</span>
+          </div>
+        </div>`;
+      list.appendChild(card);
+
+      // live calc
+      card.querySelectorAll('input[data-f],select[data-f]').forEach(el=>{
+        el.addEventListener('input',()=>{
+          const i=+el.dataset.i, f=el.dataset.f;
+          rows[i][f]=f==='mi'?+el.value:(parseFloat(el.value)||0);
+          const mm=mats[rows[i].mi]||mats[0];
+          card.querySelector('.den-disp').value=mm.density;
+          const res=calc(rows[i].r,rows[i].w,rows[i].t,mm.density);
+          card.querySelector('.wt-val').textContent=res.wt.toFixed(2);
+          card.querySelector('.ln-val').textContent=res.ln.toFixed(2);
+        });
+      });
+      card.querySelector('.del-btn').onclick=()=>{ rows.splice(idx,1); renderRows(); };
+    });
+  }
+
+  /* ─ add record ─ */
+  $('openAddBtn').onclick=()=>{ $('f_r').value='';$('f_w').value='';$('f_t').value=''; renderChips(); open('addOverlay'); };
+  $('addCancel').onclick=()=>close('addOverlay');
+  $('addConfirm').onclick=()=>{
+    rows.push({ r:parseFloat($('f_r').value)||0, w:parseFloat($('f_w').value)||0,
+                t:parseFloat($('f_t').value)||0, mi:+$('f_mat').value });
+    renderRows(); close('addOverlay'); toast('已新增記錄');
+    setTimeout(()=>list.lastElementChild?.scrollIntoView({behavior:'smooth',block:'end'}),80);
+  };
+
+  /* ─ add material ─ */
+  $('openMatBtn').onclick=()=>{ $('m_name').value='';$('m_den').value=''; open('matOverlay'); };
+  $('matCancel').onclick=()=>close('matOverlay');
+  $('matConfirm').onclick=()=>{
+    const nm=$('m_name').value.trim(), dn=parseFloat($('m_den').value);
+    if(!nm){ toast('請輸入材質名稱'); return; }
+    if(!dn||dn<=0){ toast('請輸入有效密度'); return; }
+    mats.push({name:nm,density:dn}); renderChips(); renderRows();
+    close('matOverlay'); toast(`已新增：${nm}`);
+  };
+
+  /* ─ export ─ */
+  $('exportBtn').onclick=()=>{
+    const blob=new Blob([JSON.stringify({materials:mats,rows},null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='欣泛亞膠片_'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+    toast('匯出完成');
+  };
+
+  /* ─ import ─ */
+  $('openImportBtn').onclick=()=>{ $('importText').value='';$('importFile').value=''; open('importOverlay'); };
+  $('importFile').onchange=e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=ev=>$('importText').value=ev.target.result; rd.readAsText(f); };
+  $('importCancel').onclick=()=>close('importOverlay');
+  $('importConfirm').onclick=()=>{
+    try{
+      const d=JSON.parse($('importText').value.trim());
+      if(Array.isArray(d.materials)) mats=d.materials;
+      if(Array.isArray(d.rows)) rows=d.rows;
+      renderChips(); renderRows(); close('importOverlay'); toast('匯入成功');
+    } catch{ toast('格式錯誤，請確認 JSON'); }
+  };
+
+  /* ─ clear ─ */
+  $('clearBtn').onclick=()=>{ if(confirm('確定清除所有記錄？')){ rows=[]; renderRows(); toast('已清除'); } };
+
+  /* ─ init ─ */
+  renderChips(); renderRows();
+</script>
+</body>
+</html>
