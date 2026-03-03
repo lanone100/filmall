@@ -3,255 +3,293 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>膠片計量 PRO</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <title>膠片剩餘量計算系統 | Hệ thống tính toán màng</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      /* 豐富色彩定義 */
-      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --accent-orange: #ff9a9e;
-      --card-bg: rgba(255, 255, 255, 0.95);
-      --input-bg: #f8f9fa;
-      --primary-text: #2d3436;
-      --weight-color: #0984e3; /* 活力藍 */
-      --length-color: #00b894; /* 翡翠綠 */
-      --shadow: 0 15px 35px rgba(0,0,0,0.2);
+      --main-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --input-focus: #38bdf8;
+      --weight-neon: #2dd4bf;
+      --length-neon: #a855f7;
+      --text-gold: #fbbf24;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     body {
       font-family: 'Noto Sans TC', sans-serif;
-      background: var(--bg-gradient);
+      background: var(--main-bg);
+      color: #f8fafc;
       margin: 0;
-      padding: 20px 15px;
+      padding: 20px 10px;
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      justify-content: center;
     }
 
-    /* 頂部語言切換 - 霓虹效果 */
-    .lang-toggle {
+    /* 響應式容器 */
+    .app-container {
       width: 100%;
-      max-width: 400px;
+      max-width: 900px; /* PC端展開寬度 */
       display: flex;
-      background: rgba(0, 0, 0, 0.2);
-      padding: 5px;
-      border-radius: 50px;
-      margin-bottom: 25px;
-      backdrop-filter: blur(10px);
-    }
-    .lang-btn {
-      flex: 1;
-      border: none;
-      padding: 12px;
-      border-radius: 50px;
-      font-weight: 700;
-      color: #fff;
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .lang-btn.active {
-      background: #fff;
-      color: #764ba2;
-      box-shadow: 0 4px 15px rgba(255,255,255,0.3);
+      flex-direction: column;
+      gap: 20px;
     }
 
-    /* 主卡片設計 */
-    .main-card {
-      width: 100%;
-      max-width: 400px;
-      background: var(--card-bg);
-      border-radius: 30px;
-      padding: 30px 25px;
-      box-shadow: var(--shadow);
-      position: relative;
-      overflow: hidden;
-    }
-    /* 裝飾線條 */
-    .main-card::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 6px;
-      background: linear-gradient(to right, #ffecd2 0%, #fcb69f 100%);
-    }
-
-    h1 {
-      margin: 0 0 25px 0;
-      font-size: 24px;
+    /* 頂部標題 */
+    header {
       text-align: center;
-      background: linear-gradient(45deg, #667eea, #764ba2);
+      padding: 10px 0;
+    }
+    h1 {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      margin: 0;
+      background: linear-gradient(to right, #38bdf8, #818cf8);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      font-weight: 800;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
     }
 
-    /* 輸入區塊樣式 */
-    .field { margin-bottom: 20px; }
+    /* 語言切換 */
+    .lang-bar {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .lang-btn {
+      padding: 8px 24px;
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.1);
+      color: #94a3b8;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .lang-btn.active {
+      background: #38bdf8;
+      color: #0f172a;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+    }
+
+    /* 主布局區域 */
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 1fr; /* 手機預設一欄 */
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .grid-layout {
+        grid-template-columns: 1fr 1fr; /* PC端雙欄 */
+      }
+    }
+
+    /* 卡片通用樣式 */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    /* 輸入區 */
+    .field { margin-bottom: 18px; }
     .field label {
       display: block;
+      color: var(--text-gold);
       font-size: 14px;
-      font-weight: 700;
-      color: #636e72;
       margin-bottom: 8px;
-      padding-left: 5px;
-    }
-    .input-box {
-      width: 100%;
-      padding: 15px 20px;
-      border: 2px solid #edf2f7;
-      border-radius: 15px;
-      font-size: 20px;
-      font-family: 'Montserrat', sans-serif;
       font-weight: 700;
-      color: var(--primary-text);
-      background: var(--input-bg);
-      transition: all 0.3s;
     }
-    .input-box:focus {
+    .input-wrap { position: relative; }
+    .input-wrap input, .input-wrap select {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 15px;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      transition: 0.3s;
+    }
+    .input-wrap input:focus {
       outline: none;
-      border-color: #764ba2;
-      background: #fff;
-      box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.1);
+      border-color: var(--input-focus);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+    .input-wrap .unit {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748b;
+      font-size: 14px;
     }
 
-    /* 結果顯示區 - 雙色大卡片 */
-    .res-wrapper {
-      margin-top: 30px;
-      display: grid;
-      gap: 15px;
-    }
-    .res-item {
-      padding: 20px;
-      border-radius: 20px;
-      color: #fff;
+    /* 結果區 */
+    .result-stack {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      position: relative;
+      gap: 15px;
+      justify-content: center;
     }
-    .res-item.weight { background: linear-gradient(135deg, #0984e3, #74b9ff); }
-    .res-item.length { background: linear-gradient(135deg, #00b894, #55efc4); }
-    
-    .res-label { font-size: 13px; font-weight: 700; opacity: 0.9; margin-bottom: 5px; }
-    .res-value { font-size: 36px; font-family: 'Montserrat', sans-serif; font-weight: 700; }
-    .res-unit { font-size: 16px; margin-left: 5px; font-weight: 400; }
-
-    /* 頁尾資訊 */
-    .footer {
-      margin-top: 25px;
+    .res-box {
+      padding: 25px;
+      border-radius: 20px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .res-box::before {
+      content: ""; position: absolute; top:0; left:0; width: 4px; height: 100%;
+    }
+    .res-box.weight { background: rgba(45, 212, 191, 0.1); }
+    .res-box.weight::before { background: var(--weight-neon); }
+    .res-box.length { background: rgba(168, 85, 247, 0.1); }
+    .res-box.length::before { background: var(--length-neon); }
+
+    .res-label { font-size: 14px; color: #94a3b8; margin-bottom: 5px; display: block; }
+    .res-val { 
+      font-family: 'Orbitron', sans-serif;
+      font-size: 42px; 
+      font-weight: 700; 
+      display: block;
+    }
+    .weight .res-val { color: var(--weight-neon); text-shadow: 0 0 10px rgba(45, 212, 191, 0.3); }
+    .length .res-val { color: var(--length-neon); text-shadow: 0 0 10px rgba(168, 85, 247, 0.3); }
+
+    /* 頁尾 */
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #64748b;
       font-size: 12px;
-      color: rgba(255,255,255,0.8);
-      line-height: 1.6;
+      border-top: 1px solid rgba(255,255,255,0.05);
     }
 
-    /* 語言切換隱藏邏輯 */
     [data-lang="vi"] .lang-zh { display: none; }
     [data-lang="zh"] .lang-vi { display: none; }
   </style>
 </head>
 <body data-lang="zh">
 
-  <div class="lang-toggle">
-    <button id="btn-zh" class="lang-btn active" onclick="changeLang('zh')">繁體中文</button>
-    <button id="btn-vi" class="lang-btn" onclick="changeLang('vi')">Tiếng Việt</button>
-  </div>
-
-  <div class="main-card">
-    <h1 class="lang-zh">膠片剩餘量計算</h1>
-    <h1 class="lang-vi">Tính Toán Màng Phim</h1>
-
-    <div class="field">
-      <label class="lang-zh">單邊皮厚 (r) mm</label>
-      <label class="lang-vi">Độ dày cuộn (r) mm</label>
-      <input type="number" id="val-r" class="input-box" placeholder="0.0" oninput="runCalc()">
+<div class="app-container">
+  <header>
+    <h1 class="lang-zh">膠片剩餘量盤點系統</h1>
+    <h1 class="lang-vi">Hệ Thống Tính Toán Màng Phim</h1>
+    <div class="lang-bar">
+      <button id="btn-zh" class="lang-btn active" onclick="switchLang('zh')">TW</button>
+      <button id="btn-vi" class="lang-btn" onclick="switchLang('vi')">VN</button>
     </div>
+  </header>
 
-    <div class="field">
-      <label class="lang-zh">膠片寬度 (w) mm</label>
-      <label class="lang-vi">Chiều rộng màng (w) mm</label>
-      <input type="number" id="val-w" class="input-box" placeholder="0.0" oninput="runCalc()">
-    </div>
-
-    <div class="field">
-      <label class="lang-zh">單層厚度 (t) mm</label>
-      <label class="lang-vi">Độ dày màng (t) mm</label>
-      <input type="number" id="val-t" class="input-box" placeholder="0.000" oninput="runCalc()">
-    </div>
-
-    <div class="field">
-      <label class="lang-zh">材質密度 (ρ)</label>
-      <label class="lang-vi">Tỷ trọng chất liệu (ρ)</label>
-      <select id="val-den" class="input-box" onchange="runCalc()">
-        <option value="1.34">PET (1.34)</option>
-        <option value="0.91">PP (0.91)</option>
-        <option value="1.05">PS (1.05)</option>
-        <option value="1.38">PVC (1.38)</option>
-      </select>
-    </div>
-
-    <div class="res-wrapper">
-      <div class="res-item weight">
-        <span class="res-label lang-zh">預估重量</span>
-        <span class="res-label lang-vi">Khối lượng tính</span>
-        <div><span id="res-wt" class="res-value">0.00</span><span class="res-unit">kg</span></div>
+  <main class="grid-layout">
+    <section class="card">
+      <div class="field">
+        <label class="lang-zh">單邊卷厚 (r)</label>
+        <label class="lang-vi">Độ dày cuộn một bên (r)</label>
+        <div class="input-wrap">
+          <input type="number" id="in-r" placeholder="0.0" oninput="doCalc()">
+          <span class="unit">mm</span>
+        </div>
       </div>
-      <div class="res-item length">
-        <span class="res-label lang-zh">預估長度</span>
-        <span class="res-label lang-vi">Chiều dài tính</span>
-        <div><span id="res-ln" class="res-value">0.00</span><span class="res-unit">m</span></div>
+
+      <div class="field">
+        <label class="lang-zh">膠片寬度 (w)</label>
+        <label class="lang-vi">Chiều rộng màng (w)</label>
+        <div class="input-wrap">
+          <input type="number" id="in-w" placeholder="0.0" oninput="doCalc()">
+          <span class="unit">mm</span>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <div class="footer">
-    <div class="lang-zh">
-      ⚙️ 核心技術參數：芯管外徑 168mm<br>
-      適用於工廠剩料快速盤點
-    </div>
-    <div class="lang-vi">
-      ⚙️ Thông số: Đường kính lõi 168mm<br>
-      Áp dụng cho việc kiểm kê màng dư
-    </div>
-  </div>
+      <div class="field">
+        <label class="lang-zh">單層厚度 (t)</label>
+        <label class="lang-vi">Độ dày màng đơn (t)</label>
+        <div class="input-wrap">
+          <input type="number" id="in-t" placeholder="0.000" oninput="doCalc()">
+          <span class="unit">mm</span>
+        </div>
+      </div>
 
-  <script>
-    function changeLang(lang) {
-      document.body.setAttribute('data-lang', lang);
-      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('btn-' + lang).classList.add('active');
-    }
+      <div class="field">
+        <label class="lang-zh">材質密度 (ρ)</label>
+        <label class="lang-vi">Tỷ trọng chất liệu (ρ)</label>
+        <div class="input-wrap">
+          <select id="in-den" onchange="doCalc()">
+            <option value="1.34">PET (1.34)</option>
+            <option value="0.91">PP (0.91)</option>
+            <option value="1.05">PS (1.05)</option>
+            <option value="1.38">PVC (1.38)</option>
+          </select>
+        </div>
+      </div>
+    </section>
 
-    function runCalc() {
-      const r = parseFloat(document.getElementById('val-r').value) || 0;
-      const w = parseFloat(document.getElementById('val-w').value) || 0;
-      const t = parseFloat(document.getElementById('val-t').value) || 0;
-      const rho = parseFloat(document.getElementById('val-den').value) || 0;
-      const coreD = 168;
+    <section class="result-stack">
+      <div class="res-box weight">
+        <span class="res-label lang-zh">預估計算重量</span>
+        <span class="res-label lang-vi">Khối lượng dự kiến</span>
+        <span id="out-wt" class="res-val">0.00</span>
+        <span style="color:#94a3b8">KILOGRAMS</span>
+      </div>
 
-      if (r > 0 && w > 0 && rho > 0) {
-        const outerD = coreD + (r * 2);
-        // 面積 * 寬度 = 體積 (mm3)
-        const volume = (Math.PI * (Math.pow(outerD, 2) - Math.pow(coreD, 2)) / 4) * w;
-        // 重量 (kg) = mm3 / 1,000,000 (換算 cm3) * rho / 1000 (換算 kg)
-        const weight = (volume * rho) / 1000000;
-        document.getElementById('res-wt').innerText = weight.toFixed(2);
+      <div class="res-box length">
+        <span class="res-label lang-zh">預估計算長度</span>
+        <span class="res-label lang-vi">Chiều dài dự kiến</span>
+        <span id="out-ln" class="res-val">0.00</span>
+        <span style="color:#94a3b8">METERS</span>
+      </div>
+    </section>
+  </main>
 
-        if (t > 0) {
-          // 長度 (m) = 重量(kg) / (寬mm * 厚mm * 密度 / 1000)
-          const length = weight / (w * t * rho / 1000);
-          document.getElementById('res-ln').innerText = length.toFixed(2);
-        } else {
-          document.getElementById('res-ln').innerText = "0.00";
-        }
+  <footer>
+    <div class="lang-zh">參數設定：芯管外徑 168mm | 本系統僅供盤點參考</div>
+    <div class="lang-vi">Thông số: Lõi 168mm | Hệ thống chỉ mang tính tham khảo</div>
+  </footer>
+</div>
+
+<script>
+  function switchLang(lang) {
+    document.body.setAttribute('data-lang', lang);
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + lang).classList.add('active');
+  }
+
+  function doCalc() {
+    const r = parseFloat(document.getElementById('in-r').value) || 0;
+    const w = parseFloat(document.getElementById('in-w').value) || 0;
+    const t = parseFloat(document.getElementById('in-t').value) || 0;
+    const rho = parseFloat(document.getElementById('in-den').value) || 0;
+    const coreD = 168;
+
+    if (r > 0 && w > 0 && rho > 0) {
+      const outerD = coreD + (r * 2);
+      // V = Area * Width
+      const vol = (Math.PI * (Math.pow(outerD, 2) - Math.pow(coreD, 2)) / 4) * w;
+      // Wt = V * rho / 10^6
+      const weight = (vol * rho) / 1000000;
+      document.getElementById('out-wt').innerText = weight.toFixed(2);
+
+      if (t > 0) {
+        const length = weight / (w * t * rho / 1000);
+        document.getElementById('out-ln').innerText = length.toFixed(2);
       } else {
-        document.getElementById('res-wt').innerText = "0.00";
-        document.getElementById('res-ln').innerText = "0.00";
+        document.getElementById('out-ln').innerText = "0.00";
       }
+    } else {
+      document.getElementById('out-wt').innerText = "0.00";
+      document.getElementById('out-ln').innerText = "0.00";
     }
-  </script>
+  }
+</script>
+
 </body>
 </html>
